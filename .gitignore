@@ -1,0 +1,21 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Data files (1 billion ints are ~10 GB each, do NOT commit to Git!)
+data/*.txt
+data/*.bin
+data/*.csv
+!data/.gitkeep
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# IDE
+.vscode/
+.idea/
