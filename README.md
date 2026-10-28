@@ -1,3 +1,5 @@
+ 
+
 # DSA Experiment: 100 Crore (1 Billion) Integers Analysis
 
 A comprehensive performance analysis study comparing searching and insertion operations across massive integer datasets (up to 1,000,000,000 integers).
@@ -30,11 +32,11 @@ A comprehensive performance analysis study comparing searching and insertion ope
 
 ## 👥 Team Work Distribution
 
-| Member | Module Directory | Responsibility | Status |
-| :--- | :--- | :--- | :--- |
-| **Member 1 (You)** | `src/generation/` | Dataset generation (Sorted, Unsorted with repetition, Unsorted without repetition) with and without Python's `random` library; file I/O optimization; timing infrastructure. | **Complete** ✅ |
-| **Member 2** | `src/searching/` | Searching algorithms (Binary Search, Linear Search first/all) and execution time benchmarks. | *Pending Teammate* ⏳ |
-| **Member 3** | `src/insertion/` | Insertion algorithms (beginning, end, arbitrary index) and execution time benchmarks. | *Pending Teammate* ⏳ |
+| Member                   | Module Directory    | Responsibility                                                                                                                                                                 | Status                  |
+| :----------------------- | :------------------ | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :---------------------- |
+| **Member 1 (You)** | `src/generation/` | Dataset generation (Sorted, Unsorted with repetition, Unsorted without repetition) with and without Python's `random` library; file I/O optimization; timing infrastructure. | **Complete** ✅   |
+| **Member 2**       | `src/searching/`  | Searching algorithms (Binary Search, Linear Search first/all) and execution time benchmarks.                                                                                   | *Pending Teammate* ⏳ |
+| **Member 3**       | `src/insertion/`  | Insertion algorithms (beginning, end, arbitrary index) and execution time benchmarks.                                                                                          | *Pending Teammate* ⏳ |
 
 ---
 
@@ -78,23 +80,33 @@ DSA-exp/
 ## 🔬 Technical Design: Generation Module
 
 ### 1. Memory Challenge & $O(1)$ RAM Streaming Solution
+
 * **The Problem**: Storing 1,000,000,000 integers in a Python list requires **~36 GB of RAM** ($28\text{ bytes per int} + 8\text{ bytes per pointer}$). Standard machines will instantly crash with `MemoryError`.
 * **The Solution**: All generators stream data directly to disk in **buffered chunks** (default: `1,000,000` numbers per flush).
 * **RAM Footprint**: Under **50 MB**, regardless of whether you generate 100 thousand or 1 billion integers.
 
 ### 2. Method 1: Generation WITH Python's `random` Library (`with_random.py`)
+
 - **Sorted Array**: Starts at an initial base integer and accumulates a random positive delta ($+1$ to $+5$) at each step, ensuring strictly non-decreasing order.
 - **Unsorted with Repetition**: Randomly samples numbers from a bounded range (`[1, 10,000,000]`), naturally creating duplicate values across $10^9$ elements.
 - **Unsorted without Repetition**: Uses a **modular affine permutation generator**:
-  $$f(i) = ((a \cdot i + c) \pmod N) + 1$$
+  $$
+  f(i) = ((a \cdot i + c) \pmod N) + 1
+  $$
+
   where $a$ is chosen randomly such that $\gcd(a, N) = 1$, and $c \in [1, N-1]$.
   By number theory, this creates a **bijective map** of $\{0, \dots, N-1\}$. Every single integer from $1$ to $N$ appears **exactly once** in pseudo-random order without maintaining a 36 GB hash set or array in memory.
 
 ### 3. Method 2: Generation WITHOUT `random` Library (`without_random.py`)
+
 Built completely from first principles with **zero external or standard math/random library imports**:
+
 - **Custom 64-bit Linear Congruential Generator (LCG)**:
   Uses Donald Knuth's MMIX constants:
-  $$X_{n+1} = (a \cdot X_n + c) \pmod{2^{64}}$$
+  $$
+  X_{n+1} = (a \cdot X_n + c) \pmod{2^{64}}
+  $$
+
   - Multiplier $a = 6364136223846793005$
   - Increment $c = 1442695040888963407$
   - Modulus $m = 2^{64}$ (handled via `& 0xFFFFFFFFFFFFFFFF`)
@@ -132,19 +144,22 @@ with measure_time("100 Crore Integer Generation"):
 All commands are executed from the project root (`DSA-exp`):
 
 ### CLI Arguments
-| Flag | Options | Default | Description |
-| :--- | :--- | :--- | :--- |
-| `--count` | Integer (e.g. `100000`, `10000000`, `1000000000`) | `100,000` | Number of integers to generate |
-| `--method` | `with_random`, `without_random` | `with_random` | Generation engine to use |
-| `--type` | `sorted`, `unsorted_rep`, `unsorted_no_rep`, `all` | `all` | Specific dataset or all datasets |
-| `--chunk-size` | Integer | `1,000,000` | Batch size for buffered disk writes |
+
+| Flag             | Options                                                    | Default         | Description                         |
+| :--------------- | :--------------------------------------------------------- | :-------------- | :---------------------------------- |
+| `--count`      | Integer (e.g. `100000`, `10000000`, `1000000000`)    | `100,000`     | Number of integers to generate      |
+| `--method`     | `with_random`, `without_random`                        | `with_random` | Generation engine to use            |
+| `--type`       | `sorted`, `unsorted_rep`, `unsorted_no_rep`, `all` | `all`         | Specific dataset or all datasets    |
+| `--chunk-size` | Integer                                                    | `1,000,000`   | Batch size for buffered disk writes |
 
 ---
 
 ### Execution Examples
 
 #### 1. Quick Test Run (1 Lakh = 100,000 integers)
+
 Ideal for testing your code and logic in under a second:
+
 ```bash
 # Using Python's random library
 python src/generation/run_generator.py --count 100000 --method with_random
@@ -154,18 +169,23 @@ python src/generation/run_generator.py --count 100000 --method without_random
 ```
 
 #### 2. Intermediate Scale (1 Crore = 10,000,000 integers)
+
 Great for preliminary benchmarks before running the full billion:
+
 ```bash
 python src/generation/run_generator.py --count 10000000 --method with_random
 ```
 
 #### 3. Full Production Scale (100 Crore = 1,000,000,000 integers)
+
 Generates all 3 datasets of 1 billion integers:
+
 ```bash
 python src/generation/run_generator.py --count 1000000000 --method with_random
 ```
 
 To generate only one specific dataset type at full scale:
+
 ```bash
 # Only sorted
 python src/generation/run_generator.py --count 1000000000 --type sorted
@@ -183,6 +203,7 @@ python src/generation/run_generator.py --count 1000000000 --type unsorted_no_rep
 
 > [!WARNING]
 > **Disk Space Requirement for 1 Billion Integers**:
+>
 > - Each integer stored as ASCII text (e.g., 8–10 digits plus newline `\n`) takes roughly **9.5 to 11 GB per file**.
 > - Generating all three full datasets requires **~30 GB to 33 GB of free disk space**.
 > - Ensure your drive has sufficient free space before launching the full 100 crore generation.
@@ -216,12 +237,14 @@ print('Unsorted without repetition check: PASSED (100% unique elements)')
 ## 🤝 Guide for Teammates
 
 ### For Member 2 (Searching):
+
 * Place your searching scripts inside [`src/searching/`](file:///d:/Code/DSA-exp/src/searching).
 * Use [`src/utils/file_io.py`](file:///d:/Code/DSA-exp/src/utils/file_io.py) (`load_sample_integers` or `stream_integers`) to read the datasets from `data/sorted.txt`, `data/unsorted_repetition.txt`, and `data/unsorted_no_repetition.txt`.
 * Implement Binary Search for `sorted.txt` ($O(\log N)$) and Linear Search for unsorted datasets ($O(N)$).
 * Benchmark and log the execution time differences.
 
 ### For Member 3 (Insertion):
+
 * Place your insertion scripts inside [`src/insertion/`](file:///d:/Code/DSA-exp/src/insertion).
 * Measure the execution times of:
   - Inserting at the beginning (shifts $N$ elements, $O(N)$).
